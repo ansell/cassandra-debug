@@ -44,6 +44,10 @@
 			<artifactId>cassandra-driver-core</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>com.github.ansell.jdefaultdict</groupId>
+			<artifactId>jdefaultdict</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>net.sf.jopt-simple</groupId>
 			<artifactId>jopt-simple</artifactId>
 		</dependency>
@@ -59,6 +63,11 @@
 				<groupId>com.datastax.cassandra</groupId>
 				<artifactId>cassandra-driver-core</artifactId>
 				<version>3.1.0</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.ansell.jdefaultdict</groupId>
+				<artifactId>jdefaultdict</artifactId>
+				<version>0.1</version>
 			</dependency>
 			<dependency>
 				<groupId>net.sf.jopt-simple</groupId>

@@ -2,11 +2,14 @@ package com.github.ansell.cassandra;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
+import com.github.ansell.jdefaultdict.JDefaultDict;
 
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
@@ -62,22 +65,26 @@ public final class MaxRowSizeFinder {
 						"Warning: Cassandra-1.x does not support paging, all results will be fetched at one time.");
 			}
 
-			List<String> columnFamilies = new ArrayList<>();
+			Map<String, List<String>> columnFamilies = new JDefaultDict<>(k -> new ArrayList<>());
 
-			ResultSet columnsRs = session.execute("select columnfamily_name from system.schema_columnfamilies");
+			ResultSet columnsRs = session
+					.execute("select keyspace_name, columnfamily_name from system.schema_columnfamilies");
 			for (Row nextColumnFamilyRow : columnsRs) {
 				String nextColumnFamily = nextColumnFamilyRow.getString("columnfamily_name");
-				columnFamilies.add(nextColumnFamily);
+				String nextKeyspace = nextColumnFamilyRow.getString("keyspace_name");
+				columnFamilies.get(nextKeyspace).add(nextColumnFamily);
 				System.out.println(nextColumnFamily);
 			}
 
-			for (String nextColumnFamily : columnFamilies) {
-				ResultSet nextColumnRow = session.execute("select * from " + nextColumnFamily);
-				int count = 0;
-				for (Row nextRow : nextColumnRow) {
-					count++;
+			for (Entry<String, List<String>> nextColumnFamily : columnFamilies.entrySet()) {
+				for (String nextColumnFamilyKey : nextColumnFamily.getValue()) {
+					ResultSet nextColumnRow = session.execute("select * from " + nextColumnFamilyKey);
+					int count = 0;
+					for (Row nextRow : nextColumnRow) {
+						count++;
+					}
+					System.out.println(nextColumnFamily + " count=" + count);
 				}
-				System.out.println(nextColumnFamily + " count=" + count);
 			}
 
 		}
