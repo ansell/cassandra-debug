@@ -68,7 +68,7 @@ public final class MaxRowSizeFinder {
 			Map<String, List<String>> columnFamilies = new JDefaultDict<>(k -> new ArrayList<>());
 
 			ResultSet columnsRs = session
-					.execute("select keyspace_name, columnfamily_name from system.schema_columnfamilies");
+					.execute("SELECT keyspace_name, columnfamily_name FROM system.schema_columnfamilies");
 			for (Row nextColumnFamilyRow : columnsRs) {
 				String nextColumnFamily = nextColumnFamilyRow.getString("columnfamily_name");
 				String nextKeyspace = nextColumnFamilyRow.getString("keyspace_name");
@@ -78,7 +78,10 @@ public final class MaxRowSizeFinder {
 
 			for (Entry<String, List<String>> nextColumnFamily : columnFamilies.entrySet()) {
 				for (String nextColumnFamilyKey : nextColumnFamily.getValue()) {
-					ResultSet nextColumnRow = session.execute("select * from " + nextColumnFamilyKey);
+					String nextQuery = "SELECT * FROM \"" + nextColumnFamily.getKey() + "\".\"" + nextColumnFamilyKey
+							+ "\"";
+					System.out.println(nextQuery);
+					ResultSet nextColumnRow = session.execute(nextQuery);
 					int count = 0;
 					for (Row nextRow : nextColumnRow) {
 						count++;
