@@ -1,5 +1,8 @@
 package com.github.ansell.cassandra;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
@@ -45,13 +48,38 @@ public final class MaxRowSizeFinder {
 			return;
 		}
 
-		try (Cluster cluster = Cluster.builder() // (1)
-				.addContactPoint("127.0.0.1").build();) {
-			Session session = cluster.connect(); // (2)
+		try (Cluster cluster = Cluster.builder().addContactPoint("127.0.0.1").build();) {
+			Session session = cluster.connect();
 
-			ResultSet rs = session.execute("select release_version from system.local"); // (3)
-			Row row = rs.one();
-			System.out.println(row.getString("release_version")); // (4)
+			ResultSet versionRs = session.execute("select release_version from system.local");
+			Row versionRow = versionRs.one();
+
+			String version = versionRow.getString("release_version");
+			System.out.println("Cassandra host reports its version as: " + version);
+
+			if (version.startsWith("1.")) {
+				System.out.println(
+						"Warning: Cassandra-1.x does not support paging, all results will be fetched at one time.");
+			}
+
+			List<String> columnFamilies = new ArrayList<>();
+
+			ResultSet columnsRs = session.execute("select columnfamily_name from system.schema_columnfamilies");
+			for (Row nextColumnFamilyRow : columnsRs) {
+				String nextColumnFamily = nextColumnFamilyRow.getString("columnfamily_name");
+				columnFamilies.add(nextColumnFamily);
+				System.out.println(nextColumnFamily);
+			}
+
+			for (String nextColumnFamily : columnFamilies) {
+				ResultSet nextColumnRow = session.execute("select * from " + nextColumnFamily);
+				int count = 0;
+				for (Row nextRow : nextColumnRow) {
+					count++;
+				}
+				System.out.println(nextColumnFamily + " count=" + count);
+			}
+
 		}
 
 	}
