@@ -67,13 +67,20 @@ public final class MaxRowSizeFinder {
 
 			Map<String, List<String>> columnFamilies = new JDefaultDict<>(k -> new ArrayList<>());
 
-			ResultSet columnsRs = session
-					.execute("SELECT keyspace_name, columnfamily_name FROM system.schema_columnfamilies");
+			ResultSet columnsRs = session.execute("SELECT * FROM system.schema_columnfamilies");
 			for (Row nextColumnFamilyRow : columnsRs) {
 				String nextColumnFamily = nextColumnFamilyRow.getString("columnfamily_name");
 				String nextKeyspace = nextColumnFamilyRow.getString("keyspace_name");
 				columnFamilies.get(nextKeyspace).add(nextColumnFamily);
+				System.out.println("");
 				System.out.println(nextColumnFamily);
+				System.out.println("");
+
+				nextColumnFamilyRow.getColumnDefinitions().forEach(c -> {
+					System.out.println("\t" + c.getName() + " => " + c.getType());
+					// System.out.println(c.getName() + " => " +
+					// nextColumnFamilyRow.getString(c.getName()));
+				});
 			}
 
 			for (Entry<String, List<String>> nextColumnFamily : columnFamilies.entrySet()) {
@@ -81,12 +88,13 @@ public final class MaxRowSizeFinder {
 					String nextQuery = "SELECT * FROM \"" + nextColumnFamily.getKey() + "\".\"" + nextColumnFamilyKey
 							+ "\"";
 					System.out.println(nextQuery);
-					ResultSet nextColumnRow = session.execute(nextQuery);
-					int count = 0;
-					for (Row nextRow : nextColumnRow) {
-						count++;
-					}
-					System.out.println(nextColumnFamily + " count=" + count);
+
+					// ResultSet nextColumnRow = session.execute(nextQuery);
+					// int count = 0;
+					// for (Row nextRow : nextColumnRow) {
+					// count++;
+					// }
+					// System.out.println(nextColumnFamily + " count=" + count);
 				}
 			}
 
